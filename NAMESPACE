@@ -1,0 +1,5 @@
+exportPattern("^[[:alpha:]]+")
+exportPattern("^[^\\.]")
+importFrom("stats", "cor", "mad", "median", "pchisq", "pnorm", "rnorm","var")
+importFrom(MASS,ginv)
+
