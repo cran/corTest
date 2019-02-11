@@ -29,12 +29,17 @@ ghdist<-function(n,g=0,h=0){
   .pbos
 }
 
-fisher_transfer_test<-function(x1,z1,x0,z0){
+fisher_transfer_test<-function(x1,z1,x0,z0,biasCorrection=TRUE){
 #  compute p-value with Fisher Z-transformation test
   n1<-length(x1)
   n0<-length(x0)
   p1=cor(x1,z1,method = 'pearson')
   p0=cor(x0,z0,method = 'pearson')
+  if(biasCorrection==TRUE){
+    p1=p1-p1/(2*(n1-1))
+    p0=p0-p0/(2*(n0-1))
+  }
+
   w1=0.5*log((1+p1)/(1-p1))
   w0=0.5*log((1+p0)/(1-p0))
   delta=sqrt(1/(n1-3)+1/(n0-3))
