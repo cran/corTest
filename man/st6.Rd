@@ -31,8 +31,7 @@ a numeric vector
 p-value of test
 }
 \references{
-Danyang Yu, Zeyu Zhang, Kimberly Glass, Jessica Su, Dawn L. DeMeo, Kelan Tantisira, Scott T. Weiss, Weiliang Qiu(2018). New Statistical Methods for Constructing Robust Differential Correlation Networks.(expected to be public)
-
+Danyang Yu, Zeyu Zhang, Kimberly Glass, Jessica Su, Dawn L. DeMeo, Kelan Tantisira, Scott T. Weiss, Weiliang Qiu(corresponding author). New Statistical Methods for Constructing Robust Differential Correlation Networks to characterize the interactions among microRNAs. Scientific Reports 9, Article number: 3499 (2019)
 }
 \author{
 Danyang Yu <danyangyu@hnu.edu.cn>,
