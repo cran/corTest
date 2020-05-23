@@ -2,7 +2,7 @@
 \alias{st1}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
- test for equal correlation
+ Test Differential Correlation Using st1 Method
 }
 \description{
 Compute p-value for the  equal correlation test with Pearson correlation based on a logistic regression model corresponding to two independent groups

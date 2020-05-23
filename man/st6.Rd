@@ -2,7 +2,7 @@
 \alias{st6}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-install
+Test Differential Correlation Using st6 Method
 }
 \description{
 Compute p-value for the  equal correlation test with another way to combine Spearman corrleaion and percentage bend correlation based on a multiple logistic regression model corresponding to two independent groups

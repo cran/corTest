@@ -2,7 +2,7 @@
 \alias{st2}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-install
+Test Differential Correlation Using st2 Method
 }
 \description{
 Compute p-value for the equal correlation test with mad-replacing-Pearson correlation based on a logistic regression model corresponding to two independent groups
