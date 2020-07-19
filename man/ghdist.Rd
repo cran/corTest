@@ -8,7 +8,7 @@ generating varibles from g-and-h distribution
 generating varibles from g-and-h distribution
 }
 \usage{
-ghdist(n,g=0,h=0)
+ghdist(n, g = 0,h = 0)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -28,7 +28,7 @@ n varibles generated from g-and-h distribution
 }
 
 \examples{
-x=ghdist(50,0.2,0.2)
+x = ghdist(50, 0.2, 0.2)
 print(x)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

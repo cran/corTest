@@ -71,7 +71,11 @@ st1<-function(x1,z1,x0,z0){
   w=c(w1,w0)
   u_var=p1*p2*var(w)*(n1+n0-1)
   T=u^2/u_var
-  return(1-pchisq(T,1))
+  mysign=sign(u)
+  signedStat = mysign*T
+  pval=1-pchisq(T,1)
+  res = list(stat=T, pval=pval, signedStat = signedStat)
+  return(res)
 }
 
 st2<-function(x1,z1,x0,z0){
@@ -89,13 +93,17 @@ st2<-function(x1,z1,x0,z0){
   z0_median<-median(z0)
   c1<-mad(x1)*mad(z1)
   c0<-mad(x0)*mad(z0)
-  w1<-n1*(x1-x1_median)*(z1-z1_median)/c1
-  w0<-n0*(x0-x0_median)*(z0-z0_median)/c0
+  w1<-(x1-x1_median)*(z1-z1_median)/c1
+  w0<-(x0-x0_median)*(z0-z0_median)/c0
   u=sum(w1)*p2-sum(w0)*p1
   w=c(w1,w0)
   u_var=p1*p2*var(w)*(n1+n0-1)
   T=u^2/u_var
-  return(1-pchisq(T,1))
+  mysign=sign(u)
+  signedStat = mysign*T
+  pval=1-pchisq(T,1)
+  res = list(stat=T, pval=pval, signedStat = signedStat)
+  return(res)
 }
 
 st3<-function(x1,z1,x0,z0){
@@ -153,7 +161,11 @@ st3<-function(x1,z1,x0,z0){
   w=c(w1,w0)
   u_var=p1*p2*var(w)*(n1+n0-1)
   T=u^2/u_var
-  return(1-pchisq(T,1))
+  mysign=sign(u)
+  signedStat = mysign*T
+  pval=1-pchisq(T,1)
+  res = list(stat=T, pval=pval, signedStat = signedStat)
+  return(res)
 }
 
 st4<-function(x1,z1,x0,z0){
@@ -165,19 +177,23 @@ st4<-function(x1,z1,x0,z0){
   n0<-length(x0)
   p1<-n1/(n1+n0)
   p2<-1-p1
-  c1<-n1*(n1^2-1)
-  c0<-n0*(n0^2-1)
+  c1<-n1^2-1
+  c0<-n0^2-1
   rank_x1<-rank(x1,ties.method = "average")
   rank_z1<-rank(z1,ties.method = "average")
   rank_x0<-rank(x0,ties.method = "average")
   rank_z0<-rank(z0,ties.method = "average")
-  w1=n1^2-1-6*(rank_x1-rank_z1)^2/c1
-  w0=n0^2-1-6*(rank_x0-rank_z0)^2/c0
+  w1=(n1^2-1-6*(rank_x1-rank_z1)^2)/c1
+  w0=(n0^2-1-6*(rank_x0-rank_z0)^2)/c0
   u=sum(w1)*p2-sum(w0)*p1
   w=c(w1,w0)
   u_var=p2*p1*var(w)*(n1+n0-1)
   T=u^2/u_var
-  return(1-pchisq(T,1))
+  mysign=sign(u)
+  signedStat = mysign*T
+  pval=1-pchisq(T,1)
+  res = list(stat=T, pval=pval, signedStat = signedStat)
+  return(res)
 }
 
 
@@ -240,8 +256,8 @@ st5=function (x1, z1, x0, z0) {
   w1 = c(w11, w01)
   u_var1 = p1 * p2 * var(w1) * (n1 + n0 - 1)
   T1 = u1^2/u_var1
-  c1 <- n1 * (n1^2 - 1)
-  c0 <- n0 * (n0^2 - 1)
+  c1 <- n1^2 - 1
+  c0 <- n0^2 - 1
   rank_x1 <- rank(x1, ties.method = "average")
   rank_z1 <- rank(z1, ties.method = "average")
   rank_x0 <- rank(x0, ties.method = "average")
@@ -323,8 +339,8 @@ st6<-function(x1,z1,x0,z0){
   u1=sum(w11)*p2-sum(w01)*p1
   w1=c(w11,w01)
 
-  c1<-n1*(n1^2-1)
-  c0<-n0*(n0^2-1)
+  c1<-n1^2-1
+  c0<-n0^2-1
   rank_x1<-rank(x1,ties.method = "average")
   rank_z1<-rank(z1,ties.method = "average")
   rank_x0<-rank(x0,ties.method = "average")
