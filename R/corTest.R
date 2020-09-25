@@ -361,4 +361,253 @@ st6<-function(x1,z1,x0,z0){
   st6<-tryCatch( {1-pchisq(u%*%solve(cov_u)%*%t(u),2)},error=function(e){
     1-pchisq(u%*%ginv(cov_u)%*%t(u),1)
   })
+
+  res = list(u=u, pval=st6, cov_u=cov_u)
+  return(res)
+
+}
+
+
+construct_network<-function(es,
+                            cor_method = 'st5',
+                            var.grp,
+                            pseudo_adjust_cutoff = FALSE,
+                            pAdjMethod = 'fdr',
+                            cutoff = 0.05,
+                            nPseudo = 25){
+  # input:
+  # es: an ExpressionSet object of microRNA dataset
+  # cor_method: The method for equal correlation, 'ST5' is recommand.
+  # var.grp: phenotype variable name indicating case-control status,0 as control, 1 as case.
+  # pAdjMethod:if pAdjMethod=FALSE, the function will not do mutiple testing adjustment. If pAdjMethod="fdr"/"BH"/"BY"/"holm"/"hochberg"/"hommel"/"bonferroni"/"BH"/"BY", the specific method will be used for adjusting p-value.
+  # cutoff: if p value is smaller than the cutoff, there will be an edge between the two nodes.
+  # pseudo_adjust_cutoff: if the value is true, pseudo probes will be used for adjusting the cutoff
+  # output:
+  # my_graph: obtained network in igraph object
+  # my_dat: obtained netork as data frame with 3 columns: edge id, node_id1,node_id2
+  mat1=Biobase::exprs(es)
+  pDat1=Biobase::pData(es)
+  fDat1=Biobase::fData(es)
+  geneid=featureNames(es)
+
+  status = pDat1[, c(var.grp)]
+  pos0=which(status==0) # controls
+  pos1=which(status==1) # cases
+  nProbes=dim(mat1)[1] # number of genes/probes
+
+
+  probes=1:nProbes
+  r1_pos=c()
+  r2_pos=c()
+  r1=c()
+  # for each probe, calculate test statistic between this probe and other probes
+  for(i in 1:(nProbes-1)){
+    temp1=rep(probes[i],time=nProbes-i)
+    temp2=probes[(i+1):nProbes]
+    r1_pos=c(r1_pos,temp1)
+    r2_pos=c(r2_pos,temp2)
+    x11=mat1[temp1,pos1]
+    x10=mat1[temp1,pos0]
+    z11=mat1[temp2,pos1]
+    z10=mat1[temp2,pos0]
+    if(i!=(nProbes-1)){
+      x11<-tapply(x11,rep(1:base::nrow(x11),base::ncol(x11)),function(i)i)
+      x10<-tapply(x10,rep(1:base::nrow(x10),base::ncol(x10)),function(i)i)
+      z11<-tapply(z11,rep(1:base::nrow(z11),base::ncol(z11)),function(i)i)
+      z10<-tapply(z10,rep(1:base::nrow(z10),base::ncol(z10)),function(i)i)
+      switch (cor_method,
+              st1 = {temp1=as.numeric(mapply(st1,x11,z11,x10,z10)[2,])},
+              st2 = {temp1=as.numeric(mapply(st2,x11,z11,x10,z10)[2,])},
+              st3 = {temp1=as.numeric(mapply(st3,x11,z11,x10,z10)[2,])},
+              st4 = {temp1=as.numeric(mapply(st4,x11,z11,x10,z10)[2,])},
+              st5 = {temp1=as.numeric(mapply(st5,x11,z11,x10,z10)[2,])},
+              st6 = {temp1=as.numeric(mapply(st6,x11,z11,x10,z10)[2,])},
+              stop("wrong cor_method!")
+      )
+    }else{
+      switch(cor_method,
+             st1={temp1=st1(x11,z11,x10,z10)$pval},
+             st2={temp1=st2(x11,z11,x10,z10)$pval},
+             st3={temp1=st3(x11,z11,x10,z10)$pval},
+             st4={temp1=st4(x11,z11,x10,z10)$pval},
+             st5={temp1=st5(x11,z11,x10,z10)$pval},
+             st6={temp1=st6(x11,z11,x10,z10)$pval},
+             stop('wrong cor_method')
+      )
+
+    }
+    r1=c(r1,temp1)
+  }
+
+  # p-values for pseudo genes
+  pvalPseudo = NULL
+  # decide if a pair of probes is differentially correlated
+  if(pseudo_adjust_cutoff==TRUE){
+    #nr=nrow(es) # number of probes
+    if(nPseudo >= nProbes/2)
+    {
+      stop("nPseudo must be smaller than half of number of genes!")
+    }
+    #nPseudo=50
+    # randomly pick 'nPseudo' genes as pseudo genes
+    pos.pick=sample(1:nProbes, size=nPseudo, replace=FALSE)
+    mat1.pick=mat1[pos.pick,]
+    fDat1.pick=fDat1[pos.pick,]
+    nSubj=ncol(es) # number of subjects
+    # for each pseudo gene gene, permute subject ids
+    pos=sample(1:nSubj, size=nSubj, replace=FALSE)
+    mat1.pick.s=mat1.pick[1,pos, drop=FALSE]
+    for(i in 2:nPseudo){
+      pos=sample(1:nSubj, size=nSubj, replace=FALSE)
+      mat1.pick.s=rbind(mat1.pick.s,mat1.pick[i,pos])
+    }
+    # make sure to change the row names
+    rownames(mat1.pick.s)=paste("perm", rownames(mat1.pick), sep=".")
+    rownames(fDat1.pick)=rownames(mat1.pick.s)
+    # also need to change the content of fDat.pick
+    # suppose column 'ID' is the probe id
+    fDat1.pick$ID=paste("perm", fDat1.pick$ID, sep=".")
+
+    # add dat.pick.s to dat
+    # mat2 include both original p1+p2 genes and nPseudo pseudo genes
+    mat2=rbind(mat1,mat1.pick.s)
+
+    fDat1$ID = NA
+    fDat2=rbind(fDat1,fDat1.pick)
+    #nrow=dim(mat1)[1] # number of genes
+    #nPseudo=50
+    #cutoff1=c()
+    # for each pseudo gene, we obtain its test statistic for differential correlation test
+    for(i in (nProbes-nPseudo+1):nProbes){
+      # non-pseudo genes in cases
+      x11=mat1[c(1:(nProbes-nPseudo)),pos1]
+      # non-pseudo genes in controls
+      x10=mat1[c(1:(nProbes-nPseudo)),pos0]
+      # i-the pseudo genes in cases
+      z11=mat1[rep(i,time=(nProbes-nPseudo)),pos1]
+      # i-th pseudo genes in controls
+      z10=mat1[rep(i,time=(nProbes-nPseudo)),pos0]
+      x11<-tapply(x11,rep(1:base::nrow(x11),base::ncol(x11)),function(i)i)
+      x10<-tapply(x10,rep(1:base::nrow(x10),base::ncol(x10)),function(i)i)
+      z11<-tapply(z11,rep(1:base::nrow(z11),base::ncol(z11)),function(i)i)
+      z10<-tapply(z10,rep(1:base::nrow(z10),base::ncol(z10)),function(i)i)
+      # obtain p-value for testing differential correlation
+      switch (cor_method,
+              st1 = {temp1=as.numeric(mapply(st1,x11,z11,x10,z10)[2,])},
+              st2 = {temp1=as.numeric(mapply(st2,x11,z11,x10,z10)[2,])},
+              st3 = {temp1=as.numeric(mapply(st3,x11,z11,x10,z10)[2,])},
+              st4 = {temp1=as.numeric(mapply(st4,x11,z11,x10,z10)[2,])},
+              st5 = {temp1=as.numeric(mapply(st5,x11,z11,x10,z10)[2,])},
+              st6 = {temp1=as.numeric(mapply(st6,x11,z11,x10,z10)[2,])},
+              stop("wrong cor_method!")
+      )
+
+      # we expect the p-values obtained based on pseudo genes are large
+      # because pseudo genes are non-differentially correlated.
+      # 'cutoff' percentile of p-value for testing differential correlation
+      #pvalPseudo=c(pvalPseudo, stats::quantile(temp1, prob=cutoff))
+      pvalPseudo=c(pvalPseudo, temp1)
+    }
+    #alpha1=stats::quantile(pvalPseudo, prob=cutoff)
+    alpha1 = min(pvalPseudo, na.rm=TRUE)
+    r1Adj = r1
+  }else{
+    alpha1=cutoff
+    r1Adj=stats::p.adjust(r1, pAdjMethod)
+  }
+
+  adjacency_matrix1=matrix(0,nrow = nProbes, ncol = nProbes)
+  rownames(adjacency_matrix1) = geneid
+  colnames(adjacency_matrix1) = geneid
+
+  pvalMat=matrix(0,nrow = nProbes, ncol = nProbes)
+  rownames(pvalMat) = geneid
+  colnames(pvalMat) = geneid
+
+  pAdjMat=matrix(0,nrow = nProbes, ncol = nProbes)
+  rownames(pAdjMat) = geneid
+  colnames(pAdjMat) = geneid
+
+  j=1
+  my_dat=data.frame()
+  # if p-value < alpha1, then the 2 genes are differentially correlated
+  for(i in 1:length(r1)){
+    if(r1Adj[i]<alpha1){
+      adjacency_matrix1[r1_pos[i],r2_pos[i]]=1
+      adjacency_matrix1[r2_pos[i],r1_pos[i]]=1
+      my_dat=rbind(my_dat,data.frame(edge_id=j,node_id1=r1_pos[i],node_id2=r2_pos[i]))
+      j=j+1
+    }
+    pvalMat[r1_pos[i],r2_pos[i]] = r1[i]
+    pvalMat[r2_pos[i],r1_pos[i]] = r1[i]
+
+    pAdjMat[r1_pos[i],r2_pos[i]] = r1Adj[i]
+    pAdjMat[r2_pos[i],r1_pos[i]] = r1Adj[i]
+
+  }
+  my_graph=igraph::graph_from_adjacency_matrix(as.matrix(adjacency_matrix1),
+                                               mode = "undirected",
+                                               weighted = NULL)
+  res = list(graph = my_graph,
+             network_dat = my_dat,
+             pvalMat = pvalMat,
+             pAdjMat = pAdjMat,
+             pvalPseudo = pvalPseudo,
+             alpha1 = alpha1)
+  invisible(res)
+}
+
+generate_data<-function(n1=50,n2=60,p1=5,p2=100){
+  ### The function is to generate expression level matrixes of control subjects and case subjects.
+  ### X matrix is for diseased subjects with the default sample size n1=50. Z matrix is for control subjects with the default sample size n2=60.
+  ### X is generated from multivariate normal distribution N (0, SigmaX), where SigmaX is a block matrix ((SigmaP1, 0), (0, SigmaP2)), sigmaP1 is the p1*p1 matrix and SigmaP2 is the p2*p2 matrix. Z is generated from multivariate normal distribution N (0, SigmaZ), where SigmaZ is a block matrix ((E_P1, 0), (0, SigmaP2)) and E_P1 is p1*p1 identity matrix.
+  #n1=50
+  #n2=60
+  #p1=5
+  #p2=100
+  Sigma1=clusterGeneration::rcorrmatrix(d=p1)
+  Sigma0=clusterGeneration::rcorrmatrix(d=p2)
+  Ip1=diag(p1)
+  SigmaX=as.matrix(Matrix::bdiag(Sigma1,Sigma0))
+  SigmaZ=as.matrix(Matrix::bdiag(Ip1,Sigma0))
+
+  # X - n1 x (p1+p2) matrix (cases)
+  X=MASS::mvrnorm(n = n1, mu=numeric(p1+p2), Sigma=SigmaX, tol = 1e-6, empirical = FALSE)
+  # Z - n2 x (p1+p2) matrix (controls)
+  Z=MASS::mvrnorm(n = n2, mu=numeric(p1+p2), Sigma=SigmaZ, tol = 1e-6, empirical = FALSE)
+
+  # rows are genes
+  # columns are subjects
+  dat = t(rbind(X, Z))
+
+  geneid=paste("g", 1:nrow(dat), sep="")
+  sid=paste("s", 1:ncol(dat), sep="")
+
+  rownames(dat)=geneid
+  colnames(dat)=sid
+
+  # grp=0 indicates control; grp=1 indicates case
+  grp=c(rep(1, n1), rep(0, n2))
+  pDat = data.frame(sid=sid, grp=grp)
+  rownames(pDat) = sid
+
+  # memGenes=1 indicates the gene is differentially correlated with at least one another gene between cases and controls
+  #  that is, correlation of this gene with at least one other gene in cases is different from that in controls.
+  # memGenes=0 indicates the gene is non-differentially correlated with any other genes between cases and controls
+  #  that is, correlation of this gene with other genes in cases is the same as that in controls.
+  memGenes=c(rep(1, p1), rep(0, p2))
+  fDat = data.frame(geneid=geneid, memGenes=memGenes)
+  rownames(fDat)=geneid
+
+  es = genEset(ex=dat, pDat=pDat, fDat = fDat, annotation = "")
+
+  rownames(SigmaX)=geneid
+  colnames(SigmaX)=geneid
+
+  rownames(SigmaZ)=geneid
+  colnames(SigmaZ)=geneid
+
+  res = list(es=es, covCase = SigmaX, covCtrl = SigmaZ)
+
+  invisible(res)
 }

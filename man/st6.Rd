@@ -28,7 +28,11 @@ a numeric vector with same length as \code{x0}
 }
 
 \value{
-p-value of test for testing if correlation between \code{x1} and \code{z1} is the same as that between \code{x0} and \code{z0}
+A list with 3 elements:
+  \item{u}{the vector of Fisher score.}
+  \item{pval}{
+p-value of test for testing if correlation between \code{x1} and \code{z1} is the same as that between \code{x0} and \code{z0}}
+  \item{cov_u}{covariance matrix for \code{u}.}
 }
 \references{
 Danyang Yu, Zeyu Zhang, Kimberly Glass, Jessica Su, Dawn L. DeMeo, Kelan Tantisira, Scott T. Weiss, Weiliang Qiu(corresponding author). New Statistical Methods for Constructing Robust Differential Correlation Networks to characterize the interactions among microRNAs. Scientific Reports 9, Article number: 3499 (2019)
@@ -43,8 +47,8 @@ x1 = ghdist(n = 100, g = 0.2, h = 0.2)
 x0 = ghdist(n = 100, g = 0.2, h = 0.2)
 z1 = x1 + ghdist(n = 100, g = 0.2, h = 0.2)
 z0 = x0 + ghdist(n = 100, g = 0.2, h = 0.2)
-p = st6(x1, z1, x0, z0)
-print(p)
+res = st6(x1, z1, x0, z0)
+print(res)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

@@ -1,5 +1,36 @@
-exportPattern("^[[:alpha:]]+")
-exportPattern("^[^\\.]")
-importFrom("stats", "cor", "mad", "median", "pchisq", "pnorm", "rnorm","var")
-importFrom(MASS,ginv)
+#exportPattern("^[[:alpha:]]+")
+#exportPattern("^[^\\.]")
 
+
+export(
+  construct_network,
+  fisher_transfer_test,
+  generate_data,
+  genEset,
+  ghdist,
+  plotDiffCor,
+  st1,
+  st2,
+  st3,
+  st4,
+  st5,
+  st6
+)
+
+
+
+importFrom("stats", "cor", "mad", "median", "pchisq", "pnorm", "rnorm","var")
+importFrom(MASS, ginv, mvrnorm)
+
+importFrom("stats", "p.adjust", "quantile", "lm")
+
+importFrom(igraph, graph_from_adjacency_matrix)
+
+importFrom(clusterGeneration, genPositiveDefMat)
+
+importFrom(Matrix, bdiag)
+
+importFrom("methods", "as", "new")
+
+import(Biobase)
+import(ggplot2)

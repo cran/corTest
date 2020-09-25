@@ -1,0 +1,22 @@
+* 1.0.7
+  (1) added function 'genEset'
+  (2) revised the output of the function 'st6'
+  (3) revised the output of function 'generate_data'
+  (4) renamed the input 'data_exprs' in 'construct_network' by 'es'
+  (5) renamed the input 'status' in 'construct_network' by 'var.grp'
+  (6) renamed 'nPick' in 'construct_network' by 'nPseudo'
+  (7) added the input 'nPseudo' to 'construct_network'
+  (8) renamed the input 'multiple_testing' in 'construct_network' by 'pAdjMethod'
+  (9) replace 'genPositiveDefMat' by 'rcorrmatrix' so that we can clearly check if the first p1 genes are differentially correlated or not
+  (10) added comments in function 'construct_network'
+  (11) added outputs 'pvalMat', 'pAdjMat', 'pvalPseudo', and 'alpha1' to function 'construct_network'
+  (12) set defautl value of 'nPseduo' as 25
+  (13) added function 'plotDiffCor'
+  (14) added dataset 'es' and removed datasets 'X' and 'Z'
+
+
+* 1.0.6
+  (1) imported Biobase
+
+* 1.0.5
+  (1) added function 'construct_network'
